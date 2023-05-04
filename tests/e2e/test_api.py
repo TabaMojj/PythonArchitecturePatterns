@@ -22,17 +22,16 @@ def random_orderid(name=""):
     return f"order-{name}-{random_suffix()}"
 
 
+@pytest.mark.usefixtures('postgres_db')
 @pytest.mark.usefixtures('restart_api')
-def test_happy_path_returns_201_and_allocated_batch(add_stock):
+def test_happy_path_returns_201_and_allocated_batch():
     sku, othersku = random_sku(), random_sku('other')
     earlybatch = random_batchref('1')
     laterbatch = random_batchref('2')
     otherbatch = random_batchref('3')
-    add_stock([
-        (laterbatch, sku, 100, '2011-01-02'),
-        (earlybatch, sku, 100, '2011-01-01'),
-        (otherbatch, othersku, 100, None),
-    ])
+    post_to_add_batch(laterbatch, sku, 100, '2011-01-02')
+    post_to_add_batch(earlybatch, sku, 100, '2011-01-01')
+    post_to_add_batch(otherbatch, othersku, 100, None)
     data = {'orderid': random_orderid(), 'sku': sku, 'qty': 3}
     url = config.get_api_url()
     r = requests.post(f'{url}/allocate', json=data)
@@ -49,3 +48,11 @@ def test_unhappy_path_returns_400_and_error_message():
     assert r.status_code == 400
     assert r.json()['message'] == f'Invalid sku {unknown_sku}'
 
+
+def post_to_add_batch(ref, sku, qty, eta):
+    url = config.get_api_url()
+    r = requests.post(
+        f'{url}/add_batch',
+        json={'ref': ref, 'sku': sku, 'qty': qty, 'eta': eta}
+    )
+    assert r.status_code == 201

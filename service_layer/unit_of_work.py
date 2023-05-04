@@ -12,7 +12,7 @@ DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
 
 
 class AbstractUnitOfWork(abc.ABC):
-    batches: repository.AbstractRepository
+    products: repository.AbstractProductRepository
 
     def __enter__(self) -> "AbstractUnitOfWork":
         return self

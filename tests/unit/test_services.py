@@ -2,7 +2,7 @@ import pytest
 
 from domain import model
 from service_layer import services
-from adapters.repository import FakeRepository
+from adapters.repository import AbstractRepository
 from service_layer import unit_of_work
 
 
@@ -12,11 +12,24 @@ class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
         self.batches = FakeRepository([])
         self.committed = False
 
-    def commit(self):
+    def _commit(self):
         self.committed = True
 
     def rollback(self):
         pass
+
+
+class FakeRepository(AbstractRepository):
+
+    def __init__(self, products):
+        super().__init__()
+        self._products = set(products)
+
+    def _add(self, product):
+        self._products.add(product)
+
+    def _get(self, sku):
+        return next((p for p in self._products if p.sku == sku), None)
 
 
 class FakeSession:

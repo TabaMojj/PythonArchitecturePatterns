@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 import config
 from adapters import repository
+from service_layer import messagebus
 
 DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
     config.get_postgres_uri(),
@@ -20,8 +21,18 @@ class AbstractUnitOfWork(abc.ABC):
     def __exit__(self, *args):
         self.rollback()
 
-    @abc.abstractmethod
     def commit(self):
+        self._commit()
+        self.publish_events()
+
+    def publish_events(self):
+        for product in self.products.seen:
+            while product.events:
+                event = product.events.pop(0)
+                messagebus.handle(event)
+
+    @abc.abstractmethod
+    def _commit(self):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -47,3 +58,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
 
     def rollback(self):
         self.session.rollback()
+
+    @abc.abstractmethod
+    def _commit(self):
+        raise NotImplementedError

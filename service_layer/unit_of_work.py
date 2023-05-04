@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker
 
 import config
 from adapters import repository
-from service_layer import messagebus
 
 DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
     config.get_postgres_uri(),
@@ -13,7 +12,7 @@ DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
 
 
 class AbstractUnitOfWork(abc.ABC):
-    products: repository.AbstractProductRepository
+    products: repository.AbstractRepository
 
     def __enter__(self) -> "AbstractUnitOfWork":
         return self
@@ -23,13 +22,11 @@ class AbstractUnitOfWork(abc.ABC):
 
     def commit(self):
         self._commit()
-        self.publish_events()
 
-    def publish_events(self):
+    def collect_new_events(self):
         for product in self.products.seen:
             while product.events:
-                event = product.events.pop(0)
-                messagebus.handle(event)
+                yield product.events.pop(0)
 
     @abc.abstractmethod
     def _commit(self):

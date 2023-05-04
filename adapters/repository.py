@@ -1,56 +1,55 @@
 import abc
+from adapters import orm
 from domain import model
 
 
 class AbstractRepository(abc.ABC):
-    @abc.abstractmethod
-    def add(self, batch: model.Batch):
-        raise NotImplementedError
 
-    @abc.abstractmethod
-    def get(self, reference) -> model.Batch:
-        raise NotImplementedError
+    def __init__(self):
+        self.seen = set()
 
-    @abc.abstractmethod
-    def list(self):
-        raise NotImplementedError
+    def add(self, product: model.Product):
+        self._add(product)
+        self.seen.add(product)
 
-
-class AbstractProductRepository(abc.ABC):
-
-    @abc.abstractmethod
-    def add(self, product):
-        ...
-
-    @abc.abstractmethod
     def get(self, sku) -> model.Product:
-        ...
+        product = self._get(sku)
+        if product:
+            self.seen.add(product)
+        return product
+
+    def get_by_batchref(self, batchref) -> model.Product:
+        product = self._get_by_batchref(batchref)
+        if product:
+            self.seen.add(product)
+        return product
+
+    @abc.abstractmethod
+    def _add(self, product: model.Product):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _get(self, reference) -> model.Product:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _get_by_batchref(self, batchref) -> model.Product:
+        raise NotImplementedError
 
 
 class SqlAlchemyRepository(AbstractRepository):
+
     def __init__(self, session):
+        super().__init__()
         self.session = session
 
-    def add(self, batch):
-        self.session.add(batch)
+    def _add(self, product: model.Product):
+        self.session.add(product)
 
-    def get(self, reference):
-        return self.session.query(model.Batch).filter_by(reference=reference).one()
+    def _get(self, sku):
+        return self.session.query(model.Product).filter_by(sku=sku).first()
 
-    def list(self):
-        return self.session.query(model.Batch).all()
-
-
-class FakeRepository(AbstractRepository):
-
-    def __init__(self, batches):
-        self._batches = set(batches)
-
-    def add(self, batch):
-        self._batches.add(batch)
-
-    def get(self, reference):
-        return next(b for b in self._batches if b.reference == reference)
-
-    def list(self):
-        return list(self._batches)
+    def _get_by_batchref(self, batchref) -> model.Product:
+        return self.session.query(model.Product).join(model.Batch).filter(
+            orm.batches.c.reference == batchref,
+        ).first()

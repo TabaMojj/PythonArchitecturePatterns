@@ -1,11 +1,12 @@
 from asyncio.log import logger
 from typing import Callable, Dict, Type, List, Union
+from tenacity import Retrying, RetryError, stop_after_attempt, wait_exponential
 from domain import events, commands
 from service_layer import unit_of_work, handlers
-from tenacity import Retrying, RetryError, stop_after_attempt, wait_exponential
 
 Message = Union[commands.Command, events.Event]
 EVENT_HANDLERS: Dict[Type[events.Event], List[Callable]] = {
+    events.Allocated: [handlers.publish_allocated_event],
     events.OutOfStock: [handlers.send_out_of_stock_notification],
 }
 COMMAND_HANDLERS: Dict[Type[commands.Command], Callable] = {

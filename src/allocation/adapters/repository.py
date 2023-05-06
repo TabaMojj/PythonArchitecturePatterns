@@ -1,6 +1,6 @@
 import abc
-from adapters import orm
-from domain import model
+from src.allocation.adapters import orm
+from src.allocation.domain import model
 
 
 class AbstractRepository(abc.ABC):

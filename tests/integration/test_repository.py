@@ -1,5 +1,5 @@
-from adapters import repository
-from domain import model
+from src.allocation.adapters import repository
+from src.allocation.domain import model
 
 
 def test_get_by_batchref(session):

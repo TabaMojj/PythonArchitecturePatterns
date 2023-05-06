@@ -1,8 +1,8 @@
 from datetime import date
-from adapters.repository import AbstractRepository
-from domain import events
-from service_layer import messagebus
-from service_layer import unit_of_work
+
+from src.allocation.adapters.repository import AbstractRepository
+from src.allocation.domain import events
+from src.allocation.service_layer import unit_of_work, messagebus
 
 
 class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):

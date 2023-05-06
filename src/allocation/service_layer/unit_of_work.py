@@ -3,8 +3,8 @@ import abc
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import config
-from adapters import repository
+from src.allocation import config
+from src.allocation.adapters import repository
 
 DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(
     config.get_postgres_uri(),

@@ -1,8 +1,9 @@
 from asyncio.log import logger
 from typing import Callable, Dict, Type, List, Union
 from tenacity import Retrying, RetryError, stop_after_attempt, wait_exponential
-from domain import events, commands
-from service_layer import unit_of_work, handlers
+from src.allocation.domain import events, commands
+from src.allocation.service_layer import unit_of_work
+from src.allocation.service_layer import handlers
 
 Message = Union[commands.Command, events.Event]
 EVENT_HANDLERS: Dict[Type[events.Event], List[Callable]] = {

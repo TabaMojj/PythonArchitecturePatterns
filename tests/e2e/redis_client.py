@@ -1,6 +1,6 @@
 import json
 import redis
-import config
+from src.allocation import config
 
 r = redis.Redis(**config.get_redis_host_and_port())
 

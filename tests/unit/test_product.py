@@ -1,7 +1,7 @@
 import datetime
 
-from domain import events
-from domain.model import Batch, Product, OrderLine
+from src.allocation.domain import events
+from src.allocation.domain.model import Batch, Product, OrderLine
 
 today = datetime.datetime.today()
 
